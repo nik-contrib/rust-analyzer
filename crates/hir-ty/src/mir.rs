@@ -31,7 +31,7 @@ use crate::{
 };
 
 mod borrowck;
-mod eval;
+pub mod eval;
 mod lower;
 mod monomorphization;
 mod pretty;

@@ -548,7 +548,7 @@ impl std::fmt::Debug for MirEvalError {
 type Result<'db, T> = std::result::Result<T, MirEvalError>;
 
 #[derive(Debug, Default)]
-struct DropFlags {
+pub struct DropFlags {
     need_drop: FxHashSet<Place>,
 }
 
@@ -576,10 +576,10 @@ impl DropFlags {
 }
 
 #[derive(Debug)]
-struct Locals {
-    ptr: ArenaMap<LocalId, Interval>,
-    body: Arc<MirBody>,
-    drop_flags: DropFlags,
+pub struct Locals {
+    pub ptr: ArenaMap<LocalId, Interval>,
+    pub body: Arc<MirBody>,
+    pub drop_flags: DropFlags,
 }
 
 pub struct MirOutput {
@@ -1931,7 +1931,7 @@ impl<'db> Evaluator<'db> {
     }
 
     #[allow(clippy::double_parens)]
-    fn allocate_const_in_heap(
+    pub fn allocate_const_in_heap(
         &mut self,
         locals: &Locals,
         konst: Const<'db>,

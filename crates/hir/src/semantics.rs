@@ -1722,6 +1722,14 @@ impl<'db> SemanticsImpl<'db> {
         })
     }
 
+    pub fn expr_id(&self, expr: &ast::Expr) -> Option<ExprId> {
+        if let Some(ExprOrPatId::ExprId(id)) = self.analyze(expr.syntax())?.expr_id(expr.clone()) {
+            Some(id)
+        } else {
+            None
+        }
+    }
+
     pub fn type_of_expr(&self, expr: &ast::Expr) -> Option<TypeInfo<'db>> {
         self.analyze(expr.syntax())?
             .type_of_expr(self.db, expr)

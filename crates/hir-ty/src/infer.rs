@@ -98,6 +98,63 @@ fn infer_query(db: &dyn HirDatabase, def: DefWithBodyId) -> InferenceResult {
     infer_query_with_inspect(db, def, None)
 }
 
+fn eval_expr_id<'db>(db: &'db dyn HirDatabase, def: DefWithBodyId, expr_id: ExprId) {
+    let _p = tracing::info_span!("evaluate_expr").entered();
+    let resolver = def.resolver(db);
+    let body = Body::of(db, def);
+    let mut ctx =
+        InferenceContext::new(db, ExpressionStoreOwnerId::Body(def), &body.store, resolver);
+    let konst = crate::consteval::eval_to_const(expr_id, &mut ctx);
+
+    dbg!(konst);
+
+    // /// Evaluate the constant.
+    // pub fn eval(self, db: &dyn HirDatabase) -> Result<EvaluatedConst<'_>, ConstEvalError> {
+    //     let interner = DbInterner::new_no_crate(db);
+    //     let ty = db.value_ty(self.id.into()).unwrap().instantiate_identity();
+    //     db.const_eval(self.id, GenericArgs::empty(interner), None).map(|it| EvaluatedConst {
+    //         const_: it,
+    //         def: self.id.into(),
+    //         ty,
+    //     })
+    // }
+
+    match konst.kind() {
+        rustc_type_ir::ConstKind::Value(value) => {
+            let mem = &value.value.inner().memory;
+
+            let r = &mem[0..8];
+            let g = &mem[8..16];
+            let b = &mem[16..24];
+            let a = &mem[24..32];
+
+            dbg!(r, g, b, a);
+
+            // // let mem = value.value.inner().memory;
+
+            // let mut evaluator = crate::mir::Evaluator::new(db, def, false, None).unwrap();
+            // let locals = &crate::mir::eval::Locals {
+            //     ptr: ArenaMap::new(),
+            //     body: db
+            //         .mir_body(def)
+            //         .map_err(|_| crate::mir::MirEvalError::NotSupported("unreachable".to_owned()))
+            //         .unwrap(),
+            //     drop_flags: crate::mir::eval::DropFlags::default(),
+            // };
+            // let data = evaluator.allocate_const_in_heap(locals, konst).unwrap();
+
+            // // let evaluated = hir::const_eval::EvaluatedConst { def, const_: value, ty: todo!() };
+
+            // // value.ty.value
+
+            // // value.value.
+        }
+        _ => {}
+    }
+
+    // konst
+}
+
 pub fn infer_query_with_inspect<'db>(
     db: &'db dyn HirDatabase,
     def: DefWithBodyId,
@@ -649,6 +706,10 @@ impl InferenceResult {
     #[salsa::tracked(returns(ref), cycle_result = infer_cycle_result)]
     fn for_body(db: &dyn HirDatabase, def: DefWithBodyId) -> InferenceResult {
         infer_query(db, def)
+    }
+
+    pub fn eval_expr_id(db: &dyn HirDatabase, def: DefWithBodyId, expr_id: ExprId) {
+        eval_expr_id(db, def, expr_id)
     }
 
     /// Infer types for all const expressions in an item's signature.

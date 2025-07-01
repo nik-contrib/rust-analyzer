@@ -179,6 +179,7 @@ fn match_attr_flags(attr_flags: &mut AttrFlags, attr: Meta) -> ControlFlow<Infal
                 "rust_analyzer" => match path.segments[1].text() {
                     "completions" => extract_ra_completions(attr_flags, tt),
                     "macro_style" => extract_ra_macro_style(attr_flags, tt),
+                    "color" => attr_flags.insert(AttrFlags::COLOR),
                     _ => {}
                 },
                 _ => {}
@@ -311,6 +312,8 @@ bitflags::bitflags! {
         const MACRO_STYLE_BRACES = 1 << 46;
         const MACRO_STYLE_BRACKETS = 1 << 47;
         const MACRO_STYLE_PARENTHESES = 1 << 48;
+
+        const COLOR = 1 << 49;
     }
 }
 

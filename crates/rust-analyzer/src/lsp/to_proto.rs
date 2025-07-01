@@ -563,6 +563,16 @@ pub(crate) fn signature_help(
     }
 }
 
+pub(crate) fn document_color(
+    c: ide::DocumentColor,
+    line_index: &LineIndex,
+) -> lsp_types::ColorInformation {
+    lsp_types::ColorInformation {
+        range: range(line_index, c.range),
+        color: lsp_types::Color { red: c.r, green: c.g, blue: c.b, alpha: c.a },
+    }
+}
+
 pub(crate) fn inlay_hint(
     snap: &GlobalStateSnapshot,
     fields_to_resolve: &InlayFieldsToResolve,

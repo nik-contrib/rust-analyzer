@@ -38,6 +38,10 @@ mod display;
 #[doc(hidden)]
 pub use hir_def::ModuleId;
 
+pub use hir_ty::infer::InferenceResult;
+
+pub use hir_def::DefWithBodyId;
+
 use std::{
     fmt,
     mem::discriminant,
@@ -49,9 +53,9 @@ use base_db::{CrateDisplayName, CrateOrigin, LangCrateOrigin};
 use either::Either;
 use hir_def::{
     AdtId, AssocItemId, AssocItemLoc, BuiltinDeriveImplId, CallableDefId, ConstId, ConstParamId,
-    DefWithBodyId, EnumId, EnumVariantId, ExpressionStoreOwnerId, ExternBlockId, ExternCrateId,
-    FunctionId, GenericDefId, HasModule, ImplId, ItemContainerId, LifetimeParamId, LocalFieldId,
-    Lookup, MacroExpander, MacroId, StaticId, StructId, SyntheticSyntax, TupleId, TypeAliasId,
+    EnumId, EnumVariantId, ExpressionStoreOwnerId, ExternBlockId, ExternCrateId, FunctionId,
+    GenericDefId, HasModule, ImplId, ItemContainerId, LifetimeParamId, LocalFieldId, Lookup,
+    MacroExpander, MacroId, StaticId, StructId, SyntheticSyntax, TupleId, TypeAliasId,
     TypeOrConstParamId, TypeParamId, UnionId,
     attrs::AttrFlags,
     builtin_derive::BuiltinDeriveImplMethod,
@@ -82,8 +86,8 @@ use hir_expand::{
     proc_macro::ProcMacroKind,
 };
 use hir_ty::{
-    GenericPredicates, InferenceResult, ParamEnvAndCrate, TyDefId, TyLoweringDiagnostic,
-    ValueTyDefId, all_super_traits, autoderef, check_orphan_rules,
+    GenericPredicates, ParamEnvAndCrate, TyDefId, TyLoweringDiagnostic, ValueTyDefId,
+    all_super_traits, autoderef, check_orphan_rules,
     consteval::try_const_usize,
     db::{InternedClosureId, InternedCoroutineId},
     diagnostics::BodyValidationDiagnostic,
@@ -1454,6 +1458,14 @@ pub struct Struct {
 }
 
 impl Struct {
+    pub fn attr_flags(self, db: &dyn HirDatabase) -> hir_def::attrs::AttrFlags {
+        hir_def::attrs::AttrFlags::query(db, self.id.into())
+    }
+
+    pub fn is_color(self, db: &dyn HirDatabase) -> bool {
+        self.attr_flags(db).contains(hir_def::attrs::AttrFlags::COLOR)
+    }
+
     pub fn module(self, db: &dyn HirDatabase) -> Module {
         Module { id: self.id.lookup(db).container }
     }
